@@ -1,0 +1,3 @@
+gunicorn==23.0.0
+packaging==25.0
+WebOb==1.8.9
