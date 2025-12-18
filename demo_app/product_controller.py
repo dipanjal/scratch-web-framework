@@ -1,9 +1,9 @@
 from webob import Request, Response
 
-from app import app
-from constants import HttpStatus
-from constants import inventory
-from product_service import ProductService
+from demo_app import app
+from poridhi_frame.constants import HttpStatus
+from demo_app.data import inventory
+from demo_app.service.product_service import ProductService
 
 
 @app.route('/api/products')
