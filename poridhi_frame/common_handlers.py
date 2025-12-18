@@ -2,7 +2,7 @@ import logging
 
 from webob import Request, Response
 
-from constants import HttpStatus
+from poridhi_frame.constants import HttpStatus
 
 logger = logging.getLogger(__name__)
 
