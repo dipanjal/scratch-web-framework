@@ -3,7 +3,7 @@ import inspect
 from parse import parse
 from webob.request import Request
 
-from common_handlers import CommonHandlers
+from poridhi_frame.common_handlers import CommonHandlers
 
 
 def normalize_request_url(url):

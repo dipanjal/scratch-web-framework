@@ -1,6 +1,6 @@
 from webob import Request
 
-from helpers import RoutingHelper
+from poridhi_frame.helpers import RoutingHelper
 
 
 class RouteManager:
