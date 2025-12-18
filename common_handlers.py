@@ -1,8 +1,8 @@
-from constants import HttpStatus
-from helpers import json_response
+import logging
+
 from webob import Request, Response
 
-import logging
+from constants import HttpStatus
 
 logger = logging.getLogger(__name__)
 
@@ -27,4 +27,14 @@ class CommonHandlers:
         return Response(
             json_body=response,
             status=HttpStatus.NOT_FOUND
+        )
+
+    @staticmethod
+    def method_not_allowed_handler(request: Request) -> Response:
+        response = {
+            "message": f"{request.method} request is not allowed for {request.path}"
+        }
+        return Response(
+            json_body=response,
+            status=HttpStatus.METHOD_NOT_ALLOWED
         )
