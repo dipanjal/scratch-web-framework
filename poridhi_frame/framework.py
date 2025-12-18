@@ -1,10 +1,9 @@
-from common_handlers import CommonHandlers
-from middlewares import ErrorHandlerMiddleware
-from routing_manager import RouteManager
 from webob import Request, Response
 
+from poridhi_frame.routing_manager import RouteManager
 
-class Application:
+
+class PoridhiFrame:
     def __init__(self):
         self.routing_manager = RouteManager()
 
@@ -13,15 +12,8 @@ class Application:
         response: Response = self.routing_manager.dispatch(http_request)
         return response(environ, start_response)
 
-    def route(self, path):
+    def route(self, path: str):
         def decorator(handler):
             self.routing_manager.register(path, handler)
             return handler
         return decorator
-
-
-app = Application()
-middleware = ErrorHandlerMiddleware(
-    app=app,
-    exception_handler=CommonHandlers.generic_exception_handler
-)

@@ -1,8 +1,15 @@
 from webob import Request
 
+from poridhi_frame.common_handlers import CommonHandlers
+from poridhi_frame.framework import PoridhiFrame
+
 
 class ErrorHandlerMiddleware:
-    def __init__(self, app, exception_handler: callable):
+    def __init__(
+        self,
+        app: PoridhiFrame,
+        exception_handler: callable = CommonHandlers.generic_exception_handler
+    ):
         self.wrapped_app = app
         self.exception_handler = exception_handler
 
