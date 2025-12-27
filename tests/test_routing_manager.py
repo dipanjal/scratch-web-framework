@@ -1,15 +1,10 @@
 import pytest
 from webob.response import Response
 
-from poridhi_frame import PoridhiFrame
+from tests.conftest import TestFramework
 
 
-@pytest.fixture
-def app() -> PoridhiFrame:
-    return PoridhiFrame()
-
-
-def test_basic_route_adding(app: PoridhiFrame):
+def test_basic_route_adding(app: TestFramework):
     @app.route("/home")
     def home(req):
         return Response(
@@ -17,7 +12,7 @@ def test_basic_route_adding(app: PoridhiFrame):
         )
 
 
-def test_duplicate_routing_exception(app: PoridhiFrame):
+def test_duplicate_routing_exception(app: TestFramework):
     @app.route("/test")
     def first(req):
         return Response(
