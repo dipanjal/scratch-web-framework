@@ -7,16 +7,24 @@ from tests.conftest import TestFramework
 def test_basic_route_adding(app: TestFramework):
     @app.route("/home")
     def home(req):
-        return Response("Hello World!")
+        return Response(
+            text="Hello World"
+        )
 
 
-def test_route_overlap_throws_exception(app: TestFramework):
+def test_duplicate_routing_exception(app: TestFramework):
     @app.route("/test")
-    def home(req, resp):
-        return Response("First handler")
+    def first(req):
+        return Response(
+            text="First Handler"
+        )
 
-    # Test that duplicate route raises AssertionError
-    with pytest.raises(RuntimeError):
+    with pytest.raises(
+        RuntimeError,
+        match="Path: /test already bind to another handler"
+    ):
         @app.route("/test")
-        def home2(req, resp):
-            return Response("Second handler")
+        def second(req):
+            return Response(
+                text="Second Handler"
+            )

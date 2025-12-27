@@ -1,4 +1,7 @@
+import pytest
 from webob.response import Response
+
+from tests.constants import BASE_URL
 
 
 def test_client_can_send_requests(app, client):
@@ -6,28 +9,43 @@ def test_client_can_send_requests(app, client):
 
     @app.route("/test")
     def test_handler(req):
-        return Response(
-            text=RESPONSE_TEXT,
-        )
+        return Response(text=RESPONSE_TEXT)
 
-    response = client.get("http://testserver/test")
+    response = client.get(f"{BASE_URL}/test")
     assert response.text == RESPONSE_TEXT
 
 
-def test_parameterized_route(app, client):
+@pytest.mark.parametrize(
+    "name, exp_result",
+    [
+        pytest.param(
+            "Alice", "Hello Alice", id="Alice",
+        ),
+        pytest.param(
+            "Bob", "Hello Bob", id="Bob",
+        ),
+        pytest.param(
+            "Charlie", "Hello Charlie", id="Charlie",
+        )
+    ]
+)
+def test_parameterized_route(app, client, name, exp_result):
     @app.route("/hello/{name}")
     def hello(req, name: str):
-        return Response(f"Hello {name}")
-
-    # Test multiple parameter values
-    assert client.get("http://testserver/hello/Alice").text == "Hello Alice"
-    assert client.get("http://testserver/hello/Bob").text == "Hello Bob"
-    assert client.get("http://testserver/hello/Charlie").text == "Hello Charlie"
+        return Response(text=f"Hello {name}")
+    assert client.get(f"{BASE_URL}/hello/{name}").text == exp_result
 
 
-def test_default_404_response(client):
-    response = client.get("http://testserver/nonexistent")
-    expected: dict = {'message': 'Requested path: /nonexistent does not exist'}
+def test_url_not_found(app, client):
+    RESPONSE_TEXT = "Hello from test client"
+    exp_response = {
+        "message": f"Requested path: /hello does not exist"
+    }
 
+    @app.route("/test")
+    def test_handler(req):
+        return Response(text=RESPONSE_TEXT)
+
+    response = client.get(f"{BASE_URL}/hello")
     assert response.status_code == 404
-    assert response.json() == expected
+    assert response.json() == exp_response
