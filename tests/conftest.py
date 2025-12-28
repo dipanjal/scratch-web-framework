@@ -4,13 +4,19 @@ from poridhi_frame import PoridhiFrame
 from requests import Session as RequestsSession
 from wsgiadapter import WSGIAdapter as RequestsWSGIAdapter
 
+from poridhi_frame.middlewares import ErrorHandlerMiddleware
 from tests.constants import BASE_URL
 
 
 class TestFramework(PoridhiFrame):
     def test_session(self, base_url=BASE_URL):
         session = RequestsSession()
-        session.mount(prefix=base_url, adapter=RequestsWSGIAdapter(self))
+        session.mount(
+            prefix=base_url,
+            adapter=RequestsWSGIAdapter(
+                app=ErrorHandlerMiddleware(app=self)
+            )
+        )
         return session
 
 

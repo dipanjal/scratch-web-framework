@@ -49,3 +49,18 @@ def test_url_not_found(app, client):
     response = client.get(f"{BASE_URL}/hello")
     assert response.status_code == 404
     assert response.json() == exp_response
+
+
+def test_generic_exception_handler(app, client):
+    msg = "A test exception"
+    exp_response = {
+        "message": f"Unhanded Exception Occurred: {msg}"
+    }
+
+    @app.route("/test")
+    def test_handler(req):
+        raise RuntimeError(msg)
+
+    response = client.get(f"{BASE_URL}/test")
+    assert response.status_code == 500
+    assert response.json() == exp_response
