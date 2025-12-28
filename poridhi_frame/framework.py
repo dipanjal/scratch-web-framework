@@ -12,8 +12,17 @@ class PoridhiFrame:
         response: Response = self.routing_manager.dispatch(http_request)
         return response(environ, start_response)
 
+    def add_route(self, path: str, handler: callable) -> None:
+        """
+        Django style explicit route registration.
+        :param path:
+        :param handler:
+        :return:
+        """
+        self.routing_manager.register(path, handler)
+
     def route(self, path: str):
         def decorator(handler):
-            self.routing_manager.register(path, handler)
+            self.add_route(path, handler)
             return handler
         return decorator
