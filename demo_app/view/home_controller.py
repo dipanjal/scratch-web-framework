@@ -10,4 +10,6 @@ def static_view(request) -> Response:
 @app.route('/dashboard')
 def dashboard(request) -> Response:
     name = "Dipanjal"
-    return Response(body=f"<h1>Hello {name}, welcome to the Dashboard</h1>")
+    title = "Dashboard View"
+    html_content = app.template("dashboard.html", context={"name": name, "title": title})
+    return Response(body=html_content)
