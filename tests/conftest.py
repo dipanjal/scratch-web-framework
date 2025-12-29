@@ -22,7 +22,7 @@ class TestFramework(PoridhiFrame):
 
 @pytest.fixture
 def app() -> TestFramework:
-    return TestFramework()
+    return TestFramework(template_dir="./templates")
 
 
 @pytest.fixture
