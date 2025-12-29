@@ -64,3 +64,15 @@ def test_generic_exception_handler(app, client):
     response = client.get(f"{BASE_URL}/test")
     assert response.status_code == 500
     assert response.json() == exp_response
+
+
+def test_explicitly_registered_route(app, client):
+    RESPONSE_TEXT = "Hello from test client"
+
+    def test_handler(req):
+        return Response(text=RESPONSE_TEXT)
+
+    app.add_route("/test", test_handler)
+
+    response = client.get(f"{BASE_URL}/test")
+    assert response.text == RESPONSE_TEXT
