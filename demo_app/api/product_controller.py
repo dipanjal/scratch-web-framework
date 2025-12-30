@@ -72,3 +72,8 @@ def get_products_by_cat(request: Request, category: str) -> Response:
     return Response(
         json_body=inventory[category],
     )
+
+
+@app.route('/api/exception')
+def get_products_by_cat(request: Request) -> Response:
+    raise ValueError("This is a test exception")

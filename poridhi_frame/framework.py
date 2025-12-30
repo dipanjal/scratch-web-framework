@@ -1,3 +1,5 @@
+from typing import Optional
+
 from jinja2 import Environment, FileSystemLoader
 from webob import Request, Response
 
@@ -14,9 +16,16 @@ class PoridhiFrame:
             loader=FileSystemLoader(os.path.abspath(template_dir))
         )
 
+        self.exception_handler: Optional[callable] = None
+
     def __call__(self, environ, start_response):
         http_request = Request(environ)
-        response: Response = self.routing_manager.dispatch(http_request)
+        try:
+            response: Response = self.routing_manager.dispatch(http_request)
+        except Exception as e:
+            if not self.exception_handler:
+                raise e
+            response: Response = self.exception_handler(http_request, e)
         return response(environ, start_response)
 
     def add_route(self, path: str, handler: callable) -> None:
@@ -39,3 +48,6 @@ class PoridhiFrame:
             context = {}
 
         return self.templates_env.get_template(template_name).render(**context)
+
+    def add_exception_handler(self, handler: callable) -> None:
+        self.exception_handler = handler
