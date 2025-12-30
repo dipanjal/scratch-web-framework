@@ -4,6 +4,7 @@ from poridhi_frame import PoridhiFrame
 from requests import Session as RequestsSession
 from wsgiadapter import WSGIAdapter as RequestsWSGIAdapter
 
+from poridhi_frame.common_handlers import CommonHandlers
 from poridhi_frame.middlewares import ErrorHandlerMiddleware
 from tests.constants import BASE_URL
 
@@ -13,16 +14,16 @@ class TestFramework(PoridhiFrame):
         session = RequestsSession()
         session.mount(
             prefix=base_url,
-            adapter=RequestsWSGIAdapter(
-                app=ErrorHandlerMiddleware(app=self)
-            )
+            adapter=RequestsWSGIAdapter(app=self)
         )
         return session
 
 
 @pytest.fixture
 def app() -> TestFramework:
-    return TestFramework(template_dir="./templates")
+    app = TestFramework(template_dir="./templates")
+    app.add_exception_handler(handler=CommonHandlers.generic_exception_handler)
+    return app
 
 
 @pytest.fixture
