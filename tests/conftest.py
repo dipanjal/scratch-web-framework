@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 import pytest
 
 from poridhi_frame import PoridhiFrame
@@ -22,7 +25,8 @@ class TestFramework(PoridhiFrame):
 
 @pytest.fixture
 def app() -> TestFramework:
-    return TestFramework(template_dir="./templates")
+    cwd = Path(__file__).resolve().parent
+    return TestFramework(template_dir=f"{cwd}/templates")
 
 
 @pytest.fixture
