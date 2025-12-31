@@ -42,7 +42,6 @@ class PoridhiFrame:
     def template(self, template_name: str, context: dict) -> str:
         if context is None:
             context = {}
-
         return self.templates_env.get_template(template_name).render(**context)
 
     def add_exception_handler(self, handler: callable) -> None:
