@@ -7,6 +7,7 @@ class FileSystemNode:
         self.name = name
         self.path = path
         self.is_dir = is_dir
+        self.is_file = not self.is_dir
         self.parent = None
         self.children = []
         self.content = None  # Store file content here
@@ -31,10 +32,13 @@ class FileSystemNode:
 
 
 class TempFileBuilder:
-    def __init__(self, tmpdir_factory, root: str = "static"):
+    def __init__(self, tmpdir_factory, root_dir: str = "static"):
         self._factory = tmpdir_factory
-        self._root_path = tmpdir_factory.mktemp(root)
-        self._root_node = FileSystemNode(root, self._root_path, is_dir=True)
+        self._root_node = FileSystemNode(
+            name=root_dir,
+            path=tmpdir_factory.mktemp(root_dir),
+            is_dir=True
+        )
         self._curr_node = self._root_node
         self._last_file_node = None  # Track last created file for convenience
 
@@ -132,12 +136,12 @@ class TempFileBuilder:
         print("\n".join(self.get_tree_structure()))
 
     @property
-    def root(self):
-        return self._root_path
-
-    @property
     def root_node(self):
         return self._root_node
+
+    @property
+    def root(self):
+        return self._root_node.path
 
     @property
     def current(self):
