@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 import pytest
 
 from poridhi_frame import PoridhiFrame
@@ -21,7 +24,8 @@ class TestFramework(PoridhiFrame):
 
 @pytest.fixture
 def app() -> TestFramework:
-    app = TestFramework(template_dir="./templates")
+    cwd = Path(__file__).resolve().parent
+    app = TestFramework(template_dir=f"{cwd}/templates")
     app.add_exception_handler(handler=CommonHandlers.generic_exception_handler)
     return app
 
