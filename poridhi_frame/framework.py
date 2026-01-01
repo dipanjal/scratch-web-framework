@@ -5,6 +5,7 @@ from jinja2 import Environment, FileSystemLoader
 from webob import Request, Response
 from whitenoise import WhiteNoise
 
+from poridhi_frame.middlewares import Middleware
 from poridhi_frame.routing_manager import RouteManager
 
 
@@ -18,36 +19,16 @@ class PoridhiFrame:
         )
         # Initialize Whitenoise proxy
         self.whitenoise = WhiteNoise(application=self.wsgi_app, root=static_dir)
-
         self.exception_handler: Optional[callable] = None
+        self.middleware = Middleware(app=self)
 
     def __call__(self, environ, start_response):
         return self.whitenoise(environ, start_response)
 
     def wsgi_app(self, environ, start_response):
-        http_request = Request(environ)
-        response = self._handle_request(http_request)
-        return response(environ, start_response)
+        return self.middleware(environ, start_response)
 
-    def add_route(self, path: str, handler: callable) -> None:
-        """Django style explicit route registration."""
-        self.routing_manager.register(path, handler)
-
-    def route(self, path: str):
-        def decorator(handler):
-            self.add_route(path, handler)
-            return handler
-        return decorator
-
-    def template(self, template_name: str, context: dict) -> str:
-        if context is None:
-            context = {}
-        return self.templates_env.get_template(template_name).render(**context)
-
-    def add_exception_handler(self, handler: callable) -> None:
-        self.exception_handler = handler
-
-    def _handle_request(self, request: Request) -> Response:
+    def handle_request(self, request: Request) -> Response:
         # Handle Requests that are not made for any static file
         try:
             return self.routing_manager.dispatch(request)
@@ -55,3 +36,26 @@ class PoridhiFrame:
             if not self.exception_handler:
                 raise e
             return self.exception_handler(request, e)
+
+    def route(self, path: str):
+        """Decorator to register route dynamically like Flask, FastAPI"""
+        def decorator(handler):
+            self.add_route(path, handler)
+            return handler
+        return decorator
+
+    def add_route(self, path: str, handler: callable) -> None:
+        """Django style explicit route registration."""
+        self.routing_manager.register(path, handler)
+
+    def add_exception_handler(self, handler: callable) -> None:
+        self.exception_handler = handler
+
+    def add_middleware(self, middleware_cls) -> None:
+        self.middleware.add(middleware_cls)
+
+    def template(self, template_name: str, context: dict) -> str:
+        if context is None:
+            context = {}
+        return self.templates_env.get_template(template_name).render(**context)
+
