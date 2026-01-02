@@ -74,6 +74,14 @@ def get_products_by_cat(request: Request, category: str) -> Response:
     )
 
 
-@app.route('/api/exception')
-def get_products_by_cat(request: Request) -> Response:
-    raise ValueError("This is a test exception")
+class ExceptionController:
+    def get_value_error(self, request: Request) -> Response:
+        raise ValueError("This is a test exception")
+
+    def get_generic_exception(self, request: Request) -> Response:
+        raise Exception("This is an unhandled exception")
+
+
+exception_controller = ExceptionController()
+app.add_route('/api/exception/value-error', exception_controller.get_value_error)
+app.add_route('/api/exception', exception_controller.get_generic_exception)
