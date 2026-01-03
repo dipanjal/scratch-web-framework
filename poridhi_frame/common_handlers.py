@@ -20,6 +20,18 @@ class CommonHandlers:
         )
 
     @staticmethod
+    def handle_value_error(request: Request, exc: ValueError) -> Response:
+        logger.exception(exc)
+        response = {
+            "message": str(exc)
+        }
+        return Response(
+            json_body=response,
+            status=HttpStatus.BAD_REQUEST
+        )
+
+
+    @staticmethod
     def url_not_found_handler(request: Request) -> Response:
         response = {
             "message": f"Requested path: {request.path} does not exist"
