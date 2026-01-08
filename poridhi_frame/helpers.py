@@ -4,6 +4,7 @@ from parse import parse
 from webob.request import Request
 
 from poridhi_frame.common_handlers import CommonHandlers
+from poridhi_frame.exceptions import MethodNotAllowed
 from poridhi_frame.models import RouteDefinition
 
 
@@ -38,7 +39,7 @@ class RoutingHelper:
         handler_fn = getattr(handler_instance, function_name, None)
 
         if not handler_fn:
-            return RouteDefinition(CommonHandlers.method_not_allowed_handler)
+            raise MethodNotAllowed(request)
 
         return RouteDefinition(handler_fn, kwargs=route_def.kwargs)
 
@@ -52,7 +53,7 @@ class RoutingHelper:
             )
 
         if not route_def.is_valid_method(request.method):
-            return RouteDefinition(CommonHandlers.method_not_allowed_handler)
+            raise MethodNotAllowed(request)
 
         return route_def
 

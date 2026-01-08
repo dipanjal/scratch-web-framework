@@ -5,6 +5,7 @@ from webob import Request
 from webob.response import Response
 
 from poridhi_frame.common_handlers import CommonHandlers
+from poridhi_frame.exceptions import ResponseError
 from poridhi_frame.logger import create_logger
 
 if TYPE_CHECKING:
@@ -47,6 +48,8 @@ class ErrorHandlerMiddleware(Middleware):
             return super().handle_request(request)
         except ValueError as e:
             return CommonHandlers.handle_value_error(request, e)
+        except ResponseError as e:
+            return CommonHandlers.handle_response_error(request, e)
         except Exception as e:
             return CommonHandlers.generic_exception_handler(request, e)
 
