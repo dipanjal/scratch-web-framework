@@ -37,16 +37,16 @@ class PoridhiFrame:
                 raise e
             return self.exception_handler(request, e)
 
-    def route(self, path: str):
+    def route(self, path: str, allowed_methods: Optional[list] = None):
         """Decorator to register route dynamically like Flask, FastAPI"""
         def decorator(handler):
-            self.add_route(path, handler)
+            self.add_route(path, handler, allowed_methods)
             return handler
         return decorator
 
-    def add_route(self, path: str, handler: callable) -> None:
+    def add_route(self, path: str, handler: callable, allowed_methods: Optional[list] = None) -> None:
         """Django style explicit route registration."""
-        self.routing_manager.register(path, handler)
+        self.routing_manager.register(path, handler, allowed_methods)
 
     def add_exception_handler(self, handler: callable) -> None:
         self.exception_handler = handler

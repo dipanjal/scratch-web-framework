@@ -60,7 +60,7 @@ class ProductModifyController:
             )
 
 
-@app.route('/api/products/{category}')
+@app.route('/api/products/{category}', allowed_methods=["GET"])
 def get_products_by_cat(request: Request, category: str) -> Response:
     if category not in inventory:
         return Response(
@@ -83,5 +83,5 @@ class ExceptionController:
 
 
 exception_controller = ExceptionController()
-app.add_route('/api/exception/value-error', exception_controller.get_value_error)
-app.add_route('/api/exception', exception_controller.get_generic_exception)
+app.add_route('/api/exception/value-error', exception_controller.get_value_error, allowed_methods=["GET"])
+app.add_route('/api/exception', exception_controller.get_generic_exception, allowed_methods=["GET"])
