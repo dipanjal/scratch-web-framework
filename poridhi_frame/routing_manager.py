@@ -18,8 +18,6 @@ class RouteManager:
         self.routes[path] = RouteDefinition(handler, allowed_methods)
 
     def dispatch(self, http_request: Request):
-        # handler, kwargs = RoutingHelper.get_handler(self.routes, http_request)
-        # return handler(http_request, **kwargs)
         route_def: RouteDefinition = RoutingHelper.get_route_definition(self.routes, http_request)
         return route_def.handler(http_request, **route_def.kwargs)
 

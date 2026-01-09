@@ -1,9 +1,13 @@
+from dataclasses import dataclass
+
 import pytest
 from webob.response import Response
 
 from poridhi_frame.common_handlers import CommonHandlers
+from poridhi_frame.constants import ContentType
 from poridhi_frame.exceptions import MethodNotAllowed
 from poridhi_frame.middlewares import ErrorHandlerMiddleware
+from poridhi_frame.models import TextResponse, JSONResponse
 from tests.constants import BASE_URL
 from tests.utils.test_framework import TestFrameworkBuilder
 
@@ -13,31 +17,64 @@ def test_client_can_send_requests(app, client):
 
     @app.route("/test")
     def test_handler(req):
-        return Response(text=RESPONSE_TEXT)
+        return TextResponse(RESPONSE_TEXT)
 
     response = client.get(f"{BASE_URL}/test")
     assert response.text == RESPONSE_TEXT
+    assert "text/plain" in response.headers["Content-Type"]
 
 
 @pytest.mark.parametrize(
     "name, exp_result",
     [
         pytest.param(
-            "Alice", "Hello Alice", id="Alice",
+            "Alice", {"username": "Alice"}, id="Alice",
         ),
         pytest.param(
-            "Bob", "Hello Bob", id="Bob",
+            "Bob", {"username": "Bob"}, id="Bob",
         ),
         pytest.param(
-            "Charlie", "Hello Charlie", id="Charlie",
+            "Charlie", {"username": "Charlie"}, id="Charlie",
         )
     ]
 )
-def test_parameterized_route(app, client, name, exp_result):
+def test_json_response_from_dict_based_data(app, client, name, exp_result):
     @app.route("/hello/{name}")
     def hello(req, name: str):
-        return Response(text=f"Hello {name}")
-    assert client.get(f"{BASE_URL}/hello/{name}").text == exp_result
+        return JSONResponse({"username": name})
+
+    response = client.get(f"{BASE_URL}/hello/{name}")
+    assert response.json() == exp_result
+    assert ContentType.JSON in response.headers["Content-Type"]
+
+
+@pytest.mark.parametrize(
+    "name, exp_result",
+    [
+        pytest.param(
+            "Alice", {"username": "Alice"}, id="Alice",
+        ),
+        pytest.param(
+            "Bob", {"username": "Bob"}, id="Bob",
+        ),
+        pytest.param(
+            "Charlie", {"username": "Charlie"}, id="Charlie",
+        )
+    ]
+)
+def test_json_response_from_class_based_data(app, client, name, exp_result):
+    @dataclass
+    class Person:
+        username: str
+
+    @app.route("/hello/{name}")
+    def hello(req, name: str):
+        person = Person(name)
+        return JSONResponse(person)
+
+    response = client.get(f"{BASE_URL}/hello/{name}")
+    assert response.json() == exp_result
+    assert ContentType.JSON in response.headers["Content-Type"]
 
 
 def test_url_not_found(app, client):
@@ -48,7 +85,7 @@ def test_url_not_found(app, client):
 
     @app.route("/test")
     def test_handler(req):
-        return Response(text=RESPONSE_TEXT)
+        return TextResponse(RESPONSE_TEXT)
 
     response = client.get(f"{BASE_URL}/hello")
     assert response.status_code == 404
