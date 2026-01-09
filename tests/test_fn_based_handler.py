@@ -1,6 +1,7 @@
 import pytest
 from webob.response import Response
 
+from poridhi_frame.common_handlers import CommonHandlers
 from poridhi_frame.exceptions import MethodNotAllowed
 from poridhi_frame.middlewares import ErrorHandlerMiddleware
 from tests.constants import BASE_URL
@@ -55,6 +56,7 @@ def test_url_not_found(app, client):
 
 
 def test_generic_exception_handler(app, client):
+    app.add_exception_handler(handler=CommonHandlers.generic_exception_handler)
     msg = "A test exception"
     exp_response = {
         "message": f"Unhanded Exception Occurred: {msg}"

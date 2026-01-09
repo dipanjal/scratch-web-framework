@@ -11,7 +11,6 @@ from tests.utils.test_framework import TestFramework
 def app() -> TestFramework:
     cwd = Path(__file__).resolve().parent
     app = TestFramework(template_dir=f"{cwd}/templates")
-    app.add_exception_handler(handler=CommonHandlers.generic_exception_handler)
     return app
 
 
