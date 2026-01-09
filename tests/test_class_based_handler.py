@@ -1,5 +1,6 @@
 from webob.response import Response
 
+from poridhi_frame.middlewares import ErrorHandlerMiddleware
 from tests.constants import BASE_URL
 
 
@@ -22,6 +23,7 @@ def test_class_based_handler_get(app, client):
 
 
 def test_class_based_handler_method_not_allowed(app, client):
+    app.add_middleware(ErrorHandlerMiddleware)
     exp_response = {
         "message": "POST request is not allowed for /books"
     }
@@ -31,8 +33,7 @@ def test_class_based_handler_method_not_allowed(app, client):
         def get(self, req):
             return Response("This is a GET request")
 
-
-    response = client.post("http://testserver/books")
+    response = client.post(f"{BASE_URL}/books")
     assert response.status_code == 405
     assert response.json() == exp_response
 
