@@ -4,6 +4,8 @@ from parse import parse
 from webob.request import Request
 
 from poridhi_frame.common_handlers import CommonHandlers
+from poridhi_frame.exceptions import MethodNotAllowed
+from poridhi_frame.models import RouteDefinition
 
 
 def normalize_request_url(url):
@@ -14,35 +16,48 @@ def normalize_request_url(url):
 
 class RoutingHelper:
     @classmethod
-    def _find_handler(cls, routes: dict, request: Request) -> tuple:
+    def _find_handler(cls, routes: dict, request: Request) -> RouteDefinition:
         requested_path = normalize_request_url(request.path)
 
         if requested_path in routes:
-            return routes[requested_path], {}
+            return routes[requested_path]
 
         # url that contains path variable
-        for path, handler in routes.items():
+        for path, route_def in routes.items():
             parsed = parse(path, requested_path)
             if parsed:
-                return handler, parsed.named
+                route_def.add_kwargs(parsed.named)
+                return route_def
 
         # default fallback handler
-        return CommonHandlers.url_not_found_handler, {}
+        return RouteDefinition(CommonHandlers.url_not_found_handler)
 
     @classmethod
-    def _find_class_based_handler(cls, handler, request: Request, kwargs: dict) -> tuple:
-        handler_instance = handler()
+    def _find_class_based_handler(cls, request: Request, route_def: RouteDefinition) -> RouteDefinition:
+        handler_instance = route_def.handler()
         function_name = request.method.lower()
         handler_fn = getattr(handler_instance, function_name, None)
 
         if not handler_fn:
-            return CommonHandlers.method_not_allowed_handler, {}
+            raise MethodNotAllowed(request)
 
-        return handler_fn, kwargs
+        return RouteDefinition(handler_fn, kwargs=route_def.kwargs)
 
     @classmethod
-    def get_handler(cls, routes: dict, request: Request) -> tuple:
-        handler, kwargs = cls._find_handler(routes, request)
-        if inspect.isclass(handler):
-            handler, kwargs = cls._find_class_based_handler(handler, request, kwargs)
-        return handler, kwargs
+    def get_route_definition(cls, routes: dict, request: Request) -> RouteDefinition:
+        route_def: RouteDefinition = cls._find_handler(routes, request)
+
+        if route_def.is_class_based_handler():
+            return cls._find_class_based_handler(
+                request, route_def
+            )
+
+        if not route_def.is_valid_method(request.method):
+            raise MethodNotAllowed(request)
+
+        return route_def
+
+
+
+
+

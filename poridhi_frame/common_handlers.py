@@ -3,6 +3,7 @@ import logging
 from webob import Request, Response
 
 from poridhi_frame.constants import HttpStatus
+from poridhi_frame.exceptions import ResponseError
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,16 @@ class CommonHandlers:
             status=HttpStatus.BAD_REQUEST
         )
 
+    @staticmethod
+    def handle_response_error(request: Request, exc: ResponseError) -> Response:
+        logger.exception(exc)
+        response = {
+            "message": exc.message
+        }
+        return Response(
+            json_body=response,
+            status=exc.http_status
+        )
 
     @staticmethod
     def url_not_found_handler(request: Request) -> Response:

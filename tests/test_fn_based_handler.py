@@ -1,7 +1,11 @@
 import pytest
 from webob.response import Response
 
+from poridhi_frame.common_handlers import CommonHandlers
+from poridhi_frame.exceptions import MethodNotAllowed
+from poridhi_frame.middlewares import ErrorHandlerMiddleware
 from tests.constants import BASE_URL
+from tests.utils.test_framework import TestFrameworkBuilder
 
 
 def test_client_can_send_requests(app, client):
@@ -52,6 +56,7 @@ def test_url_not_found(app, client):
 
 
 def test_generic_exception_handler(app, client):
+    app.add_exception_handler(handler=CommonHandlers.generic_exception_handler)
     msg = "A test exception"
     exp_response = {
         "message": f"Unhanded Exception Occurred: {msg}"
@@ -76,3 +81,29 @@ def test_explicitly_registered_route(app, client):
 
     response = client.get(f"{BASE_URL}/test")
     assert response.text == RESPONSE_TEXT
+
+
+def test_method_not_allowed_request():
+    app = TestFrameworkBuilder().build()
+    client = app.test_session()
+
+    @app.route("/home", allowed_methods=["post"])
+    def home(req):
+        return Response("Hello")
+
+    with pytest.raises(MethodNotAllowed):
+        client.get(f"{BASE_URL}/home")
+
+
+def test_method_not_allowed_request_handled():
+    app = TestFrameworkBuilder().build()
+    app.add_middleware(ErrorHandlerMiddleware)
+    client = app.test_session()
+
+    @app.route("/home", allowed_methods=["post"])
+    def home(req):
+        return Response("Hello")
+
+    response = client.get(f"{BASE_URL}/home")
+    response.status_code = 405
+
