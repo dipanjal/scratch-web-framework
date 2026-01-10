@@ -3,7 +3,7 @@ from typing import Optional
 from webob import Request
 
 from poridhi_frame.helpers import RoutingHelper
-from poridhi_frame.models import RouteDefinition
+from poridhi_frame.models.route_definition import RouteDefinition
 
 
 class RouteManager:
