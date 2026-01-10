@@ -77,6 +77,29 @@ def test_json_response_from_class_based_data(app, client, name, exp_result):
     assert ContentType.JSON in response.headers["Content-Type"]
 
 
+def test_json_response_with_list_of_objects(app, client):
+    @dataclass
+    class Address:
+        long: float
+        lat: float
+
+    @dataclass
+    class Person:
+        username: str
+        address: Address
+
+    @app.route("/hello")
+    def hello(req):
+        persons = [
+            Person("Bob", address=Address(long=5.5, lat=5.5)),
+            Person("Charlie", address=Address(long=4.5, lat=4.5)),
+        ]
+        return JSONResponse(persons)
+
+    response = client.get(f"{BASE_URL}/hello")
+    assert ContentType.JSON in response.headers["Content-Type"]
+
+
 def test_url_not_found(app, client):
     RESPONSE_TEXT = "Hello from test client"
     exp_response = {

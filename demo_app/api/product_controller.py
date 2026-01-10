@@ -4,6 +4,7 @@ from demo_app import app
 from poridhi_frame.constants import HttpStatus
 from demo_app.data import inventory
 from demo_app.service.product_service import ProductService
+from poridhi_frame.models import JSONResponse
 
 
 @app.route('/api/products')
@@ -69,8 +70,8 @@ def get_products_by_cat(request: Request, category: str) -> Response:
             },
             status=HttpStatus.NOT_FOUND,
         )
-    return Response(
-        json_body=inventory[category],
+    return JSONResponse(
+        inventory[category],
     )
 
 
