@@ -3,11 +3,11 @@ from dataclasses import dataclass
 import pytest
 from webob.response import Response
 
-from poridhi_frame.common_handlers import CommonHandlers
-from poridhi_frame.constants import ContentType
-from poridhi_frame.exceptions import MethodNotAllowed
-from poridhi_frame.middlewares import ErrorHandlerMiddleware
-from poridhi_frame.models.responses import TextResponse, JSONResponse
+from poridhiweb.common_handlers import CommonHandlers
+from poridhiweb.constants import ContentType
+from poridhiweb.exceptions import MethodNotAllowed
+from poridhiweb.middlewares import ErrorHandlerMiddleware
+from poridhiweb.models.responses import TextResponse, JSONResponse
 from tests.constants import BASE_URL
 from tests.utils.test_framework import TestFrameworkBuilder
 

@@ -5,8 +5,8 @@ from jinja2 import Environment, FileSystemLoader
 from webob import Request, Response
 from whitenoise import WhiteNoise
 
-from poridhi_frame.middlewares import Middleware
-from poridhi_frame.routing_manager import RouteManager
+from poridhiweb.middlewares import Middleware
+from poridhiweb.routing_manager import RouteManager
 
 
 class PoridhiFrame:

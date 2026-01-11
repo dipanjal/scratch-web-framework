@@ -1,4 +1,4 @@
-from poridhi_frame import PoridhiFrame
+from poridhiweb import PoridhiFrame
 from tests.constants import BASE_URL
 from requests import Session as RequestsSession
 from wsgiadapter import WSGIAdapter as RequestsWSGIAdapter

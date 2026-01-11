@@ -1,6 +1,6 @@
 from webob.response import Response
 
-from poridhi_frame.middlewares import ErrorHandlerMiddleware
+from poridhiweb.middlewares import ErrorHandlerMiddleware
 from tests.constants import BASE_URL
 
 

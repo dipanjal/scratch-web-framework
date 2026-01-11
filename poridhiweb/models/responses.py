@@ -2,8 +2,8 @@ from typing import Any
 
 from webob.response import Response
 
-from poridhi_frame.constants import HttpStatus, ContentType
-from poridhi_frame.utils.json_util import JSONUtils
+from poridhiweb.constants import HttpStatus, ContentType
+from poridhiweb.utils.json_util import JSONUtils
 
 
 class TextResponse(Response):

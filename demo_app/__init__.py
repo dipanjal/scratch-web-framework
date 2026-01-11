@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from poridhi_frame import PoridhiFrame
-from poridhi_frame.middlewares import (
+from poridhiweb import PoridhiFrame
+from poridhiweb.middlewares import (
     ErrorHandlerMiddleware,
     ExecutionTimeMiddleware,
     ReqResLoggingMiddleware

@@ -1,6 +1,6 @@
 from webob.request import Request
 
-from poridhi_frame.constants import HttpStatus
+from poridhiweb.constants import HttpStatus
 
 
 class ResponseError(Exception):
