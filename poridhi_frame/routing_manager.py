@@ -2,7 +2,7 @@ from typing import Optional
 
 from webob import Request
 
-from poridhi_frame.helpers import RoutingHelper
+from poridhi_frame.utils.routing_helper import RoutingHelper
 from poridhi_frame.models.route_definition import RouteDefinition
 
 
