@@ -1,23 +1,25 @@
-import inspect
+from collections.abc import Sequence
+from enum import Enum
+from typing import Any
 
 from parse import parse
 from webob.request import Request
 
 from poridhi_frame.common_handlers import CommonHandlers
 from poridhi_frame.exceptions import MethodNotAllowed
-from poridhi_frame.models import RouteDefinition
-
-
-def normalize_request_url(url):
-    if url != "/" and url.endswith("/"):
-        return url[:-1]
-    return url
+from poridhi_frame.models.route_definition import RouteDefinition
 
 
 class RoutingHelper:
+    @staticmethod
+    def _normalize_request_url(url):
+        if url != "/" and url.endswith("/"):
+            return url[:-1]
+        return url
+
     @classmethod
     def _find_handler(cls, routes: dict, request: Request) -> RouteDefinition:
-        requested_path = normalize_request_url(request.path)
+        requested_path = cls._normalize_request_url(request.path)
 
         if requested_path in routes:
             return routes[requested_path]
@@ -58,6 +60,26 @@ class RoutingHelper:
         return route_def
 
 
+class JSONUtils:
+    @classmethod
+    def to_dict(cls, content: dict | list | Any):
+        if content is None:
+            return None
+        if isinstance(content, (str, int, float, bool)):
+            return content
+        if isinstance(content, Enum):
+            return content.value
+        if hasattr(content, "__dict__"):
+            return cls.to_dict(content.__dict__)
+        if isinstance(content, dict):
+            return {
+                key: cls.to_dict(value)
+                for key, value in content.items()
+            }
+        if isinstance(content, (list, tuple, set, Sequence)):
+            return [cls.to_dict(item) for item in content]
+
+        return content
 
 
 
