@@ -6,4 +6,14 @@ install:
 run:
 	./scripts/run.sh
 
-.PHONY: all install run
+clean:
+	./scripts/cleanup.sh
+
+build:
+	./scripts/build.sh
+
+publish: clean build
+	./scripts/publish.sh
+
+
+.PHONY: all install run clean build
