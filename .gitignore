@@ -208,3 +208,6 @@ __marimo__/
 
 # IDE file
 .idea
+
+# iOS specific file
+.DS_Store

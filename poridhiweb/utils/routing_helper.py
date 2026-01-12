@@ -1,9 +1,9 @@
 from parse import parse
 from webob.request import Request
 
-from poridhi_frame.common_handlers import CommonHandlers
-from poridhi_frame.exceptions import MethodNotAllowed
-from poridhi_frame.models.route_definition import RouteDefinition
+from poridhiweb.common_handlers import CommonHandlers
+from poridhiweb.exceptions import MethodNotAllowed
+from poridhiweb.models.route_definition import RouteDefinition
 
 
 class RoutingHelper:

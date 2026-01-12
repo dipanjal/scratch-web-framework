@@ -1,7 +1,7 @@
 from webob.request import Request
 from webob.response import Response
 
-from poridhi_frame.middlewares import Middleware
+from poridhiweb.middlewares import Middleware
 from tests.constants import BASE_URL
 
 

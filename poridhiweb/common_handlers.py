@@ -2,8 +2,8 @@ import logging
 
 from webob import Request, Response
 
-from poridhi_frame.constants import HttpStatus
-from poridhi_frame.exceptions import ResponseError
+from poridhiweb.constants import HttpStatus
+from poridhiweb.exceptions import ResponseError
 
 logger = logging.getLogger(__name__)
 

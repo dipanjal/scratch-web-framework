@@ -1,10 +1,10 @@
 from webob import Request, Response
 
 from demo_app import app
-from poridhi_frame.constants import HttpStatus
+from poridhiweb.constants import HttpStatus
 from demo_app.data import inventory
 from demo_app.service.product_service import ProductService
-from poridhi_frame.models.responses import JSONResponse
+from poridhiweb.models.responses import JSONResponse
 
 
 @app.route('/api/products')

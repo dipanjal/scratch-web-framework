@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from poridhi_frame.common_handlers import CommonHandlers
+from poridhiweb.common_handlers import CommonHandlers
 from tests.utils.temp_file_builder import TempFileBuilder
 from tests.utils.test_framework import TestFramework
 

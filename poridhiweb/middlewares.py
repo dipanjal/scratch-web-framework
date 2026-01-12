@@ -4,12 +4,12 @@ from typing import TYPE_CHECKING
 from webob import Request
 from webob.response import Response
 
-from poridhi_frame.common_handlers import CommonHandlers
-from poridhi_frame.exceptions import ResponseError
-from poridhi_frame.logger import create_logger
+from poridhiweb.common_handlers import CommonHandlers
+from poridhiweb.exceptions import ResponseError
+from poridhiweb.logger import create_logger
 
 if TYPE_CHECKING:
-    from poridhi_frame.framework import PoridhiFrame
+    from poridhiweb.framework import PoridhiFrame
 
 
 # logger = create_logger(__name__, level="DEBUG")

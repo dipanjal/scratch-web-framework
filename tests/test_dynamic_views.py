@@ -1,4 +1,4 @@
-from poridhi_frame.models.responses import HTMLResponse
+from poridhiweb.models.responses import HTMLResponse
 from tests.constants import BASE_URL
 
 

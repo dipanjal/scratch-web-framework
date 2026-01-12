@@ -2,8 +2,8 @@ from typing import Optional
 
 from webob import Request
 
-from poridhi_frame.utils.routing_helper import RoutingHelper
-from poridhi_frame.models.route_definition import RouteDefinition
+from poridhiweb.utils.routing_helper import RoutingHelper
+from poridhiweb.models.route_definition import RouteDefinition
 
 
 class RouteManager:
