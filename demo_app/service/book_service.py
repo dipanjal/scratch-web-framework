@@ -1,4 +1,5 @@
 from demo_app.exceptions import ResourceNotFoundException
+from demo_app.models.book import Book
 from demo_app.repository.book_repository import BookRepository
 
 
@@ -15,14 +16,14 @@ class BookService:
             name="Life of Pi", author="Yann Martel"
         )
 
-    def get_all(self) -> list[dict]:
+    def get_all(self) -> list[Book]:
         return self.repository.all()
 
-    def create(self, schema: dict) -> dict:
+    def create(self, schema: dict) -> Book:
         return self.repository.create(**schema)
 
     def delete(self, book_id: int) -> None:
-        is_success = self.repository.delete(book_id)
-        if not is_success:
+        deleted = self.repository.delete(book_id)
+        if not deleted:
             raise ResourceNotFoundException(f"Book associated with id: {book_id} not found")
 
