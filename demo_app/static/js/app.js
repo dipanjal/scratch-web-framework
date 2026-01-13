@@ -15,16 +15,25 @@ $(document).ready(function(){
     $("#login-button").on("click", function (event) {
         event.preventDefault();
 
+        payload = {
+            username: $("#username").val(),
+            password: $("#password").val(),
+        }
+
         $.ajax({
             type: 'POST',
-            url: BASE_URL + "login",
+            url: BASE_URL + "/token",
+            headers: {"Content-Type": "application/json"},
+            data: JSON.stringify(payload),
         }).done(function (data) {
+            debugger;
             token = data["token"];
             localStorage.setItem("token", token);
             $("#login-form-wrapper").hide();
             alert("Successfully logged in!");
-        }).fail(function () {
+        }).fail(function(xhr) {
             alert("Failed to login!");
+            console.log(xhr);
         });
     });
 
