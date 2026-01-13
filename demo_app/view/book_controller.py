@@ -3,20 +3,23 @@ from webob.response import Response
 
 from demo_app import app
 from demo_app.service.book_service import BookService
-from poridhiweb.models.responses import JSONResponse
+from poridhiweb.constants import HttpStatus
+from poridhiweb.models.responses import JSONResponse, HTMLResponse
 
 service = BookService()
 
 
 @app.route('/books/all', allowed_methods=["GET"])
 def get_all_books(request: Request) -> Response:
-    return JSONResponse(service.get_all())
+    books: list[dict] = service.get_all()
+    html_content = app.template("books.html", context={"books": books})
+    return HTMLResponse(html_content)
 
 
 @app.route('/books', allowed_methods=["POST"])
 def create_book(request: Request) -> Response:
     book_created = service.create(request.json)
-    return JSONResponse(book_created)
+    return JSONResponse(book_created, status=HttpStatus.CREATED)
 
 
 @app.route('/books/{book_id:d}', allowed_methods=["DELETE"])
