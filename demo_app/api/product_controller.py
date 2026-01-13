@@ -1,10 +1,12 @@
-from webob import Request, Response
+from http import HTTPStatus
+
+from webob import Request
 
 from demo_app import app
-from poridhiweb.constants import HttpStatus
 from demo_app.data import inventory
+from demo_app.exceptions import ResourceNotFoundException
 from demo_app.service.product_service import ProductService
-from poridhiweb.models.responses import JSONResponse
+from poridhiweb.models.responses import JSONResponse, Response
 
 
 @app.route('/api/products')
@@ -13,18 +15,14 @@ class ProductCreatController:
         self.service = ProductService()
 
     def get(self, request: Request) -> Response:
-        return Response(
-            json_body=self.service.get_all_products()
-        )
+        return JSONResponse(self.service.get_all_products())
 
     # Create
     def post(self, request: Request) -> Response:
         products = self.service.create_new_product(
             request.json
         )
-        return Response(
-            json_body=products
-        )
+        return JSONResponse(products, status=HTTPStatus.CREATED)
 
 
 @app.route('/api/products/{id:d}')
@@ -33,46 +31,26 @@ class ProductModifyController:
         self.service = ProductService()
 
     def _get_product_not_found_response(self, product_id: int) -> Response:
-        return Response(
-            json_body={
-                "message": f"No product found with product id {product_id}"
-            },
-            status=HttpStatus.NOT_FOUND
+        raise ResourceNotFoundException(
+            message=f"No product found with id {product_id}"
         )
 
     def get(self, request: Request, id: int) -> Response:
         product = self.service.get_product_by_id(id)
-        if not product:
-            return self._get_product_not_found_response(id)
-        return Response(
-            json_body=product
-        )
+        return JSONResponse(product)
 
     def delete(self, request: Request, id: int):
-        try:
-            products = self.service.delete_product_by_id(id)
-            return Response(
-                json_body=products
-            )
-        except Exception as e:
-            return Response(
-                json_body={"message": str(e)},
-                status=HttpStatus.NOT_FOUND
-            )
+        products = self.service.delete_product_by_id(id)
+        return JSONResponse(products)
 
 
 @app.route('/api/products/{category}', allowed_methods=["GET"])
 def get_products_by_cat(request: Request, category: str) -> Response:
     if category not in inventory:
-        return Response(
-            json_body={
-                "message": f"{category} doesn't exist in the inventory",
-            },
-            status=HttpStatus.NOT_FOUND,
+        raise ResourceNotFoundException(
+            message=f"No product found with category {category}"
         )
-    return JSONResponse(
-        inventory[category],
-    )
+    return JSONResponse(inventory[category])
 
 
 class ExceptionController:

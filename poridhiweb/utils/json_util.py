@@ -14,6 +14,8 @@ class JSONUtils:
             return content.value
         if hasattr(content, "__dict__"):
             return cls.to_dict(content.__dict__)
+        if hasattr(content, "_asdict"):
+            return cls.to_dict(content._asdict())
         if isinstance(content, dict):
             return {
                 key: cls.to_dict(value)
