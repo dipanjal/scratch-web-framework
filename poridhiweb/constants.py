@@ -1,4 +1,3 @@
-
 class HttpStatus:
     OK = "200 OK"
     CREATED = "201 Created"
