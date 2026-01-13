@@ -2,6 +2,7 @@ from webob.request import Request
 from webob.response import Response
 
 from demo_app import app
+from demo_app.decorators import login_required
 from demo_app.service.book_service import BookService
 from poridhiweb.constants import HttpStatus
 from poridhiweb.models.responses import JSONResponse, HTMLResponse
@@ -17,12 +18,14 @@ def get_all_books(request: Request) -> Response:
 
 
 @app.route('/books', allowed_methods=["POST"])
+@login_required
 def create_book(request: Request) -> Response:
     book_created = service.create(request.json)
     return JSONResponse(book_created, status=HttpStatus.CREATED)
 
 
 @app.route('/books/{book_id:d}', allowed_methods=["DELETE"])
+@login_required
 def delete_book(request: Request, book_id: int) -> Response:
     service.delete(book_id)
     return JSONResponse({

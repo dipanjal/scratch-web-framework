@@ -49,7 +49,6 @@ $(document).ready(function(){
             return;
         }
 
-        let token = "abc123"
         let payload = {
             name: name,
             author: author,
