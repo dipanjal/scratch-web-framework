@@ -33,3 +33,11 @@ class TestSqliteORM:
         assert Author._get_create_sql() == "CREATE TABLE IF NOT EXISTS author (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INTEGER);"
         assert Book._get_create_sql() == "CREATE TABLE IF NOT EXISTS book (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, published INTEGER, author_id INTEGER);"
 
+    def test_row_insertion_query(self):
+        author = Author(name="Author 1", age="25")
+        book = Book(title="Test Book", published=1, author=author)
+
+        aq, av = author._get_insert_sql()
+        bq, bv = book._get_insert_sql()
+        assert aq == 'INSERT INTO author (id, name, age) VALUES (?, ?, ?);'
+        assert bq == 'INSERT INTO book (id, title, published, author_id) VALUES (?, ?, ?, ?);'
