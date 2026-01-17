@@ -1,4 +1,3 @@
-import inspect
 import sqlite3
 
 
@@ -36,6 +35,28 @@ class TableMeta(type):
 
 
 class Table(metaclass=TableMeta):
+    def __init__(self, **kwargs):
+        self._data = {
+            "id": None,
+        }
+        for key, value in kwargs.items():
+            self._data[key] = value
+        self.id = self._data["id"]
+
+    def __getattribute__(self, key):
+        # A python magic method that gets invoked when an instance field is accessed.
+        # such as any defined author.name attribute or dynamic attribute like author.id
+
+        # whenever any field is called we first try to return it from our data dictionary
+        # or directly from the instance
+
+        # can't use self._data as it will call __getattribute__ again and again leading to an infinite recursion call
+        _data = super().__getattribute__("_data")
+        if key in _data:
+            return _data[key]
+
+        return super().__getattribute__(key)
+
     @classmethod
     def _get_create_sql(cls):
         CREATE_TABLE_SQL = "CREATE TABLE IF NOT EXISTS {name} ({fields});"
@@ -54,6 +75,36 @@ class Table(metaclass=TableMeta):
         table_name = cls.__name__.lower()
         fields = ", ".join(fields)
         return CREATE_TABLE_SQL.format(name=table_name, fields=fields)
+
+    def _get_insert_sql(self) -> tuple[str, list]:
+        # "INSERT INTO author (age, name) VALUES (?, ?);"
+        INSERT_SQL = "INSERT INTO {name} ({fields}) VALUES ({placeholders});"
+
+        fields = []
+        placeholders = []
+        values = []
+        for name, field in self._columns.items():
+            if isinstance(field, ForeignKey):
+                fields.append(name + "_id")
+                field_value: Table = getattr(self, name)
+                values.append(field_value.id)
+                placeholders.append("?")
+            elif isinstance(field, Column):
+                fields.append(name)
+                values.append(getattr(self, name))
+                placeholders.append("?")
+
+        fields = ", ".join(fields)
+        placeholders = ", ".join(placeholders)
+        table_name = self.__class__.__name__.lower()
+        query = INSERT_SQL.format(
+            name=table_name,
+            fields=fields,
+            placeholders=placeholders,
+        )
+        return query, values
+
+
 
 
 class ForeignKey(Column):
@@ -74,3 +125,9 @@ class Database:
     def create(self, table: type[Table]):
         raw_sql = table._get_create_sql()
         self.connection.execute(raw_sql)
+
+    def save(self, table_instance: Table):
+        sql, values = table_instance._get_insert_sql()
+        cursor = self.connection.execute(sql, values)
+        table_instance._data["id"] = cursor.lastrowid
+        self.connection.commit()

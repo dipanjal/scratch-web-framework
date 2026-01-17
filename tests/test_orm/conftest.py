@@ -12,3 +12,4 @@ class Book(Table):
     title = Column(str)
     published = Column(bool)
     author = ForeignKey(Author)
+
