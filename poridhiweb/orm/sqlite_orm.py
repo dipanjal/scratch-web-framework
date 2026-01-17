@@ -118,3 +118,9 @@ class Database:
     def create(self, table: type[Table]):
         raw_sql = table._get_create_sql()
         self.connection.execute(raw_sql)
+
+    def save(self, table_instance: Table):
+        sql, values = table_instance._get_insert_sql()
+        cursor = self.connection.execute(sql, values)
+        table_instance._data["id"] = cursor.lastrowid
+        self.connection.commit()
