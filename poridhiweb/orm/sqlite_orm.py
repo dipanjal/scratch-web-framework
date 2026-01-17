@@ -1,4 +1,3 @@
-import inspect
 import sqlite3
 
 
@@ -45,9 +44,17 @@ class Table(metaclass=TableMeta):
         self.id = self._data["id"]
 
     def __getattribute__(self, key):
+        # A python magic method that gets invoked when an instance field is accessed.
+        # such as any defined author.name attribute or dynamic attribute like author.id
+
+        # whenever any field is called we first try to return it from our data dictionary
+        # or directly from the instance
+
+        # can't use self._data as it will call __getattribute__ again and again leading to an infinite recursion call
         _data = super().__getattribute__("_data")
         if key in _data:
             return _data[key]
+
         return super().__getattribute__(key)
 
     @classmethod
