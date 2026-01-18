@@ -57,6 +57,11 @@ class Table(metaclass=TableMeta):
 
         return super().__getattribute__(key)
 
+    def __setattr__(self, key, value):
+        super().__setattr__(key, value)
+        if key in self._data:
+            self._data[key] = value
+
     @classmethod
     def _get_create_sql(cls):
         CREATE_TABLE_SQL = "CREATE TABLE IF NOT EXISTS {name} ({fields});"
@@ -104,6 +109,34 @@ class Table(metaclass=TableMeta):
         )
         return query, values
 
+    @classmethod
+    def _get_select_all_sql(cls):
+        # SELECT id, name, age from author
+        SELECT_ALL_SQL = 'SELECT {fields} FROM {name};'
+        table_name = cls.__name__.lower()
+        fields = []
+        for field_name, field in cls._columns.items():
+            if isinstance(field, ForeignKey):
+                fields.append(field_name + "_id")
+            elif isinstance(field, Column):
+                fields.append(field_name)
+
+        sql = SELECT_ALL_SQL.format(name=table_name, fields=", ".join(fields))
+        return sql, fields
+
+    @classmethod
+    def _get_select_by_id_sql(cls, id: int):
+        SELECT_BY_ID_SQL = "SELECT {fields} FROM {name} WHERE id = ?;"
+        table_name = cls.__name__.lower()
+        fields = []
+        for field_name, field in cls._columns.items():
+            if isinstance(field, ForeignKey):
+                fields.append(field_name + "_id")
+            elif isinstance(field, Column):
+                fields.append(field_name)
+        params = [id]
+        sql = SELECT_BY_ID_SQL.format(name=table_name, fields=", ".join(fields))
+        return sql, fields, params
 
 
 
@@ -111,6 +144,7 @@ class ForeignKey(Column):
     def __init__(self, table: type[Table], column_type=int):
         self.table = table
         super().__init__(column_type)
+
 
 class Database:
     def __init__(self, path):
@@ -131,3 +165,38 @@ class Database:
         cursor = self.connection.execute(sql, values)
         table_instance._data["id"] = cursor.lastrowid
         self.connection.commit()
+
+    def get_all(self, table_type: type[Table]) -> list[Table]:
+        sql, field_names = table_type._get_select_all_sql()
+        rows = self.connection.execute(sql).fetchall()
+        result = []
+        for row in rows:
+            kwargs = {}
+            for field_name, col_value in zip(field_names, row):
+                if field_name.endswith("_id"):
+                    field_name = field_name[:-3]
+                    f_key: ForeignKey = getattr(table_type, field_name)
+                    f_instance = self.get_by_id(f_key.table, col_value)
+                    col_value = f_instance
+                kwargs[field_name] = col_value
+            instance = table_type(**kwargs)
+            result.append(instance)
+        return result
+
+    def get_by_id(self, table_type: type[Table], id: int) -> Table:
+        sql, field_names, params = table_type._get_select_by_id_sql(id)
+        row = self.connection.execute(sql, params).fetchone()
+        if not row:
+            raise Exception(f"Table {table_type.__name__} with id {id} not found")
+
+        kwargs = {}
+        for field_name, col_value in zip(field_names, row):
+            if field_name.endswith("_id"):
+                field_name = field_name[:-3]
+                f_key: ForeignKey = getattr(table_type, field_name)
+                f_table_type = f_key.table
+                f_instance = self.get_by_id(f_table_type, id=col_value)
+                col_value = f_instance
+            kwargs[field_name] = col_value
+        instance = table_type(**kwargs)
+        return instance
