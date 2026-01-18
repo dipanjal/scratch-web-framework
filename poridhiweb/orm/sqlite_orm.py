@@ -1,4 +1,5 @@
 import sqlite3
+from typing import TypeVar
 
 from poridhiweb.orm.sql_types import SQL_TYPE_MAP, SQLType
 
@@ -141,6 +142,7 @@ class ForeignKey(Column):
         super().__init__(column_type)
 
 
+T = TypeVar("T", bound=Table)
 class Database:
     def __init__(self, path):
         self.path = path
@@ -151,23 +153,23 @@ class Database:
         result_set = self.connection.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
         return [rs[0] for rs in result_set]
 
-    def create(self, table: type[Table]):
+    def create(self, table: type[T]):
         raw_sql = table._get_create_sql()
         self.connection.execute(raw_sql)
 
-    def save(self, table_instance: Table):
+    def save(self, table_instance: T):
         sql, values = table_instance._get_insert_sql()
         cursor = self.connection.execute(sql, values)
         table_instance._data["id"] = cursor.lastrowid
         self.connection.commit()
 
-    def get_all(self, table_type: type[Table]) -> list[Table]:
+    def get_all(self, table_type: type[T]) -> list[T]:
         sql, column_names = table_type._get_select_all_sql()
         rows = self.connection.execute(sql).fetchall()
         results = []
         for row in rows:
             # Map to Python type class
-            instance = self._to_class_type(
+            instance = self._to_instance(
                 table_type=table_type,
                 column_names=column_names,
                 row=row,
@@ -175,34 +177,19 @@ class Database:
             results.append(instance)
         return results
 
-    def get_by_id(self, table_type: type[Table], id: int) -> Table:
+    def get_by_id(self, table_type: type[T], id: int) -> T:
         sql, column_names, params = table_type._get_select_by_id_sql(id)
         row = self.connection.execute(sql, params).fetchone()
         if not row:
             raise Exception(f"Table {table_type.__name__} with id {id} not found")
 
-        return self._to_class_type(
+        return self._to_instance(
             table_type=table_type,
             column_names=column_names,
             row=row,
         )
 
-    def _get_fk_by_id(
-        self,
-        parent_table_type: type[Table],
-        fk_field_name: str,
-        fk_id: int
-    ):
-        fk: ForeignKey = parent_table_type._columns[fk_field_name]
-        fk_instance = self.get_by_id(fk.table, id=fk_id)
-        return fk_instance
-
-    def _to_field_name(self, column_name: str):
-        if column_name.endswith("_id"):
-            return column_name[:-3]
-        return column_name
-
-    def _to_class_type(self, table_type: type[Table], column_names: list[str], row: tuple):
+    def _to_instance(self, table_type: type[T], column_names: list[str], row: tuple) -> T:
         kwargs = {}
         for column_name, col_value in zip(column_names, row):
             field_name = self._to_field_name(column_name)
@@ -219,4 +206,19 @@ class Database:
                 kwargs[field_name] = sql_type.to_python_type(col_value)
         instance = table_type(**kwargs)
         return instance
+
+    def _get_fk_by_id(
+        self,
+        parent_table_type: type[T],
+        fk_field_name: str,
+        fk_id: int
+    ) -> T:
+        fk: ForeignKey = parent_table_type._columns[fk_field_name]
+        fk_instance = self.get_by_id(fk.table, id=fk_id)
+        return fk_instance
+
+    def _to_field_name(self, column_name: str) -> str:
+        if column_name.endswith("_id"):
+            return column_name[:-3]
+        return column_name
 
