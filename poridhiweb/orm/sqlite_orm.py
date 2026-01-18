@@ -1,20 +1,15 @@
 import sqlite3
 
+from poridhiweb.orm.sql_types import SQL_TYPE_MAP, SQLType
+
 
 class Column:
     def __init__(self, column_type):
         self.type = column_type
 
     @property
-    def sql_type(self):
-        type_map = {
-            int: "INTEGER",
-            float: "REAL",
-            str: "TEXT",
-            bytes: "BLOB",
-            bool: "INTEGER",  # 0 or 1
-        }
-        return type_map[self.type]
+    def sql_type(self) -> SQLType:
+        return SQL_TYPE_MAP[self.type]
 
 
 class PrimaryKey(Column):
@@ -68,14 +63,14 @@ class Table(metaclass=TableMeta):
         fields = []
         for name, field in cls._columns.items():
             if isinstance(field, PrimaryKey):
-                sql = f"{name} {field.sql_type} PRIMARY KEY"
+                sql = f"{name} {field.sql_type.value} PRIMARY KEY"
                 if field.auto_increment:
                     sql += " AUTOINCREMENT"
                 fields.append(sql)
             elif isinstance(field, ForeignKey):
                 fields.append(f"{name}_id INTEGER")
             elif isinstance(field, Column):
-                fields.append(f"{name} {field.sql_type}")
+                fields.append(f"{name} {field.sql_type.value}")
 
         table_name = cls.__name__.lower()
         fields = ", ".join(fields)
@@ -220,8 +215,8 @@ class Database:
                 )
                 kwargs[field_name] = fk_instance
             else:
-                python_type = column.type
-                kwargs[field_name] = python_type(col_value)
+                sql_type: SQLType = column.sql_type
+                kwargs[field_name] = sql_type.to_python_type(col_value)
         instance = table_type(**kwargs)
         return instance
 

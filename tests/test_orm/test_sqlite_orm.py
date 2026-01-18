@@ -1,8 +1,6 @@
 import os
 import sqlite3
 
-from docutils.nodes import authors
-
 from poridhiweb.orm.sqlite_orm import Database
 from tests.test_orm.conftest import Author, Book
 
@@ -19,10 +17,10 @@ class TestSqliteORMCreation:
 
     def test_define_tables(self):
         assert Author.name.type == str
-        assert Author.name.sql_type == "TEXT"
+        assert Author.name.sql_type.value == "TEXT"
 
         assert Book.author.table == Author
-        assert Author.age.sql_type == "INTEGER"
+        assert Author.age.sql_type.value == "INTEGER"
 
     def test_create_table(self):
         self.db.create(Author)
