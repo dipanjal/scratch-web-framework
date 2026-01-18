@@ -167,36 +167,61 @@ class Database:
         self.connection.commit()
 
     def get_all(self, table_type: type[Table]) -> list[Table]:
-        sql, field_names = table_type._get_select_all_sql()
+        sql, column_names = table_type._get_select_all_sql()
         rows = self.connection.execute(sql).fetchall()
-        result = []
+        results = []
         for row in rows:
-            kwargs = {}
-            for field_name, col_value in zip(field_names, row):
-                if field_name.endswith("_id"):
-                    field_name = field_name[:-3]
-                    f_key: ForeignKey = getattr(table_type, field_name)
-                    f_instance = self.get_by_id(f_key.table, col_value)
-                    col_value = f_instance
-                kwargs[field_name] = col_value
-            instance = table_type(**kwargs)
-            result.append(instance)
-        return result
+            # Map to Python type class
+            instance = self._to_class_type(
+                table_type=table_type,
+                column_names=column_names,
+                row=row,
+            )
+            results.append(instance)
+        return results
 
     def get_by_id(self, table_type: type[Table], id: int) -> Table:
-        sql, field_names, params = table_type._get_select_by_id_sql(id)
+        sql, column_names, params = table_type._get_select_by_id_sql(id)
         row = self.connection.execute(sql, params).fetchone()
         if not row:
             raise Exception(f"Table {table_type.__name__} with id {id} not found")
 
+        return self._to_class_type(
+            table_type=table_type,
+            column_names=column_names,
+            row=row,
+        )
+
+    def _get_fk_by_id(
+        self,
+        parent_table_type: type[Table],
+        fk_field_name: str,
+        fk_id: int
+    ):
+        fk: ForeignKey = parent_table_type._columns[fk_field_name]
+        fk_instance = self.get_by_id(fk.table, id=fk_id)
+        return fk_instance
+
+    def _to_field_name(self, column_name: str):
+        if column_name.endswith("_id"):
+            return column_name[:-3]
+        return column_name
+
+    def _to_class_type(self, table_type: type[Table], column_names: list[str], row: tuple):
         kwargs = {}
-        for field_name, col_value in zip(field_names, row):
-            if field_name.endswith("_id"):
-                field_name = field_name[:-3]
-                f_key: ForeignKey = getattr(table_type, field_name)
-                f_table_type = f_key.table
-                f_instance = self.get_by_id(f_table_type, id=col_value)
-                col_value = f_instance
-            kwargs[field_name] = col_value
+        for column_name, col_value in zip(column_names, row):
+            field_name = self._to_field_name(column_name)
+            column: Column = table_type._columns[field_name]
+            if isinstance(column, ForeignKey):
+                fk_instance = self._get_fk_by_id(
+                    parent_table_type=table_type,
+                    fk_field_name=field_name,
+                    fk_id=col_value
+                )
+                kwargs[field_name] = fk_instance
+            else:
+                python_type = column.type
+                kwargs[field_name] = python_type(col_value)
         instance = table_type(**kwargs)
         return instance
+

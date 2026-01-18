@@ -92,9 +92,20 @@ class TestSqliteORMRead:
         books = self.db.get_all(Book)
         assert len(books) == 2
 
-        book = self.db.get_by_id(Book, 1)
-        assert book is not None
+    def test_get_by_id(self):
+        author = Author(name="Garry C.", age=45)
+        self.db.save(author)
 
+        book = Book(title="The house of dragon", published=True, author=author)
+        self.db.save(book)
 
+        # author_fetched: Author = self.db.get_by_id(Author, author.id)
+        # assert author_fetched._data == author._data
 
+        book_fetched: Book = self.db.get_by_id(table_type=Book, id=book.id)
 
+        assert book_fetched.id == book.id
+        assert book_fetched.title == book.title
+        assert book_fetched.published == book.published
+
+        assert book_fetched.author._data == author._data
