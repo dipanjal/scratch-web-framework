@@ -4,6 +4,7 @@
 set -e
 
 DIRECTORY=".venv"
+APP_MODULE="demo_app"
 
 # Activate virtual environment
 echo "🔌 Activating virtual environment"
@@ -15,4 +16,4 @@ which python
 python --version
 
 # format gunicorn {root_module}.{main_python_file_name}:{app_variable_name}
-gunicorn demo_app.main:app --reload --bind=localhost:8000
+gunicorn "$APP_MODULE".main:app --reload --bind=localhost:8000
