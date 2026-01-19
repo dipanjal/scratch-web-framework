@@ -138,6 +138,34 @@ class Table(metaclass=TableMeta):
         sql = SELECT_BY_ID_SQL.format(name=table_name, fields=", ".join(fields))
         return sql, fields, params
 
+    def _get_update_sql(self):
+        # UPDATE author SET name = ?, age = ? WHERE id = ?;
+        UPDATE_SQL_TEMPLATE = "UPDATE {name} SET {fields} WHERE id = ?;"
+        table_name = self.__class__.__name__.lower()
+        fields = []
+        values = []
+
+        for field_name, field in self._columns.items():
+            if isinstance(field, PrimaryKey):
+                continue
+
+            if isinstance(field, ForeignKey):
+                fields.append(field_name + "_id = ?")
+                fk_instance: T = getattr(self, field_name)
+                values.append(fk_instance.id)
+            elif isinstance(field, Column):
+                fields.append(field_name + " = ?")
+                field_value = getattr(self, field_name)
+                values.append(field_value)
+
+        values.append(getattr(self, 'id'))
+
+        sql = UPDATE_SQL_TEMPLATE.format(
+            name=table_name,
+            fields=", ".join(fields),
+        )
+        return sql, fields, values
+
 
 
 class ForeignKey(Column):
@@ -192,6 +220,12 @@ class Database:
             column_names=column_names,
             row=row,
         )
+
+    def update(self, table_to_update: T) -> None:
+        update_sql, column_names, params = table_to_update._get_update_sql()
+        self.connection.execute(update_sql, params)
+        self.connection.commit()
+
 
     def _to_instance(self, table_type: type[T], column_names: list[str], row: tuple) -> T:
         kwargs = {}
