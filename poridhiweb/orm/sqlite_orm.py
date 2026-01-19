@@ -58,6 +58,10 @@ class Table(metaclass=TableMeta):
         if key in self._data:
             self._data[key] = value
 
+    @property
+    def __dict__(self):
+        return self._data
+
     @classmethod
     def _get_create_sql(cls):
         CREATE_TABLE_SQL = "CREATE TABLE IF NOT EXISTS {name} ({fields});"

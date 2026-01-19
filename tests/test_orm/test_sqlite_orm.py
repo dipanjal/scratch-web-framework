@@ -3,6 +3,7 @@ import sqlite3
 
 from poridhiweb.orm.sqlite_orm import Database
 from tests.test_orm.conftest import Author, Book
+from poridhiweb.utils.json_util import JSONUtils
 
 
 class TestSqliteORMCreation:
@@ -97,8 +98,8 @@ class TestSqliteORMRead:
         book = Book(title="The house of dragon", published=True, author=author)
         self.db.save(book)
 
-        # author_fetched: Author = self.db.get_by_id(Author, author.id)
-        # assert author_fetched._data == author._data
+        author_fetched: Author = self.db.get_by_id(Author, author.id)
+        assert author_fetched._data == author._data
 
         book_fetched: Book = self.db.get_by_id(table_type=Book, id=book.id)
 
@@ -107,3 +108,9 @@ class TestSqliteORMRead:
         assert book_fetched.published == book.published
 
         assert book_fetched.author._data == author._data
+
+        # Dictionary Comparison
+        book_fetched_data: dict = JSONUtils.to_dict(book_fetched)
+        book_data: dict = JSONUtils.to_dict(book)
+
+        assert book_data == book_fetched_data
