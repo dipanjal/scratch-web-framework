@@ -1,6 +1,7 @@
 import sqlite3
 from typing import TypeVar
 
+from poridhiweb.orm.exceptions import RecordNotFound
 from poridhiweb.orm.sql_types import SQL_TYPE_MAP, SQLType
 
 
@@ -166,6 +167,14 @@ class Table(metaclass=TableMeta):
         )
         return sql, fields, values
 
+    @classmethod
+    def _get_delete_sql(cls, id: int):
+        # DELETE FROM author WHERE id = 1;
+        DELETE_SQL_TEMPLATE = "DELETE FROM {name} WHERE id = ?;"
+        table_name = cls.__name__.lower()
+        params = [id]
+        sql = DELETE_SQL_TEMPLATE.format(name=table_name)
+        return sql, params
 
 
 class ForeignKey(Column):
@@ -213,7 +222,7 @@ class Database:
         sql, column_names, params = table_type._get_select_by_id_sql(id)
         row = self.connection.execute(sql, params).fetchone()
         if not row:
-            raise Exception(f"Table {table_type.__name__} with id {id} not found")
+            raise RecordNotFound(f"Table {table_type.__name__.lower()} with id {id} not found")
 
         return self._to_instance(
             table_type=table_type,
@@ -224,6 +233,11 @@ class Database:
     def update(self, table_to_update: T) -> None:
         update_sql, column_names, params = table_to_update._get_update_sql()
         self.connection.execute(update_sql, params)
+        self.connection.commit()
+
+    def delete(self, table_type: type[T], id: int) -> None:
+        delete_sql, params = table_type._get_delete_sql(id)
+        self.connection.execute(delete_sql, params)
         self.connection.commit()
 
 

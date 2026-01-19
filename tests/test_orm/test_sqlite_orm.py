@@ -1,6 +1,9 @@
 import os
 import sqlite3
 
+import pytest
+
+from poridhiweb.orm.exceptions import RecordNotFound
 from poridhiweb.orm.sqlite_orm import Database
 from tests.test_orm.conftest import Author, Book
 from poridhiweb.utils.json_util import JSONUtils
@@ -148,8 +151,6 @@ class TestSqliteORMUpdate:
     def test_update_author(self):
         author = Author(name="Garry C.", age=45)
         self.db.save(author)
-        # book = Book(title="The house of dragon", published=True, author=author)
-        # self.db.save(book)
 
         autor_to_update: Author = self.db.get_by_id(Author, author.id)
         autor_to_update.name = "Garry C. Mertin"
@@ -179,3 +180,32 @@ class TestSqliteORMUpdate:
         assert updated_book_fetched.author.name == "Robert C Martin"
         assert JSONUtils.to_dict(updated_book_fetched.author) == JSONUtils.to_dict(author_2)
         assert JSONUtils.to_dict(updated_book_fetched) == JSONUtils.to_dict(book_to_update)
+
+class TestSqliteORMDelete:
+    def setup_method(self):
+        self.db = Database("./test.db")
+        self.db.create(Author)
+        self.db.create(Book)
+
+    def teardown_method(self):
+        os.remove("./test.db")
+
+    def test_delete_sql(self):
+        author = Author(name="Garry C.", age=45)
+        self.db.save(author)
+
+        sql, params = Author._get_delete_sql(author.id)
+        assert sql == "DELETE FROM author WHERE id = ?;"
+        assert params == [author.id]
+
+    def test_delete_author(self):
+        author = Author(name="Garry C.", age=45)
+        self.db.save(author)
+
+        self.db.delete(Author, author.id)
+
+        with pytest.raises(
+            RecordNotFound,
+            match=f"Table author with id {author.id} not found"
+        ):
+            self.db.get_by_id(Author, author.id)
