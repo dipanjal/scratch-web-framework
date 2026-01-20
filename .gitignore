@@ -211,3 +211,6 @@ __marimo__/
 
 # iOS specific file
 .DS_Store
+
+# ignore any db files
+*.db
