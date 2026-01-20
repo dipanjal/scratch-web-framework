@@ -3,9 +3,9 @@ import sqlite3
 
 import pytest
 
-from poridhiweb.orm.database import Database
-from poridhiweb.orm.exceptions import RecordNotFound
-from poridhiweb.orm.query_builder import QueryBuilder
+from poridhiweb.orm.sqlite.database import Database
+from poridhiweb.orm.sqlite.exceptions import RecordNotFound
+from poridhiweb.orm.sqlite.query_builder import QueryBuilder
 from tests.test_orm.conftest import Author, Book
 from poridhiweb.utils.json_util import JSONUtils
 

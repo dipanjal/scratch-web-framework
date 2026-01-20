@@ -1,9 +1,9 @@
 from typing import TYPE_CHECKING
 
-from poridhiweb.orm.sql_types import SQL_TYPE_MAP, SQLType
+from poridhiweb.orm.sqlite.sql_types import SQL_TYPE_MAP, SQLType
 
 if TYPE_CHECKING:
-    from poridhiweb.orm.table import Table
+    from poridhiweb.orm.sqlite.table import Table
 
 class Column:
     def __init__(self, column_type):

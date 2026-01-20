@@ -1,11 +1,11 @@
 import sqlite3
 from typing import TypeVar
 
-from poridhiweb.orm.column import Column, ForeignKey
-from poridhiweb.orm.exceptions import RecordNotFound
-from poridhiweb.orm.query_builder import QueryBuilder
-from poridhiweb.orm.sql_types import SQLType
-from poridhiweb.orm.table import Table
+from poridhiweb.orm.sqlite.column import Column, ForeignKey
+from poridhiweb.orm.sqlite.exceptions import RecordNotFound
+from poridhiweb.orm.sqlite.query_builder import QueryBuilder
+from poridhiweb.orm.sqlite.sql_types import SQLType
+from poridhiweb.orm.sqlite.table import Table
 
 T = TypeVar("T", bound=Table)
 

@@ -1,4 +1,4 @@
-from poridhiweb.orm.column import Column, ForeignKey, PrimaryKey
+from poridhiweb.orm.sqlite.column import Column
 
 
 class TableMeta(type):

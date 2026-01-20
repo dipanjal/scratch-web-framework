@@ -1,5 +1,5 @@
-from poridhiweb.orm.column import PrimaryKey, ForeignKey, Column
-from poridhiweb.orm.table import Table
+from poridhiweb.orm.sqlite.column import PrimaryKey, ForeignKey, Column
+from poridhiweb.orm.sqlite.table import Table
 # from poridhiweb.orm.sqlite_orm import Table
 
 
