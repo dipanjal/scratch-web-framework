@@ -11,6 +11,7 @@ PoridhiWeb is a small, educational WSGI-compatible Python web framework built fr
 - **Static Files**: Static files (CSS/JS/images) can be served from a `static/` directory.
 - **Error Handling**: Built-in `ResponseError` and optional middleware to convert exceptions into JSON responses.
 - **HTTP Method Control**: Route definitions can restrict allowed HTTP methods.
+- **ORM**: Lightweight Object-Relational Mapping with SQLite support, featuring model definitions, CRUD operations, and foreign key relationships.
 - **Published**: The package is available on PyPI for easy installation.
 
 ## Installation
@@ -143,7 +144,7 @@ def dashboard(request) -> Response:
     name = "Hello User"
     title = "Dashboard View"
     html_content = app.template(
-        "dashboard.html", 
+        "dashboard.html",
         context={"name": name, "title": title}
     )
     return HTMLResponse(html_content)
@@ -151,6 +152,117 @@ def dashboard(request) -> Response:
 
 **Static Files**
 - Static assets under the `static` directory are served automatically. Place CSS/JS/images in `static/` and reference them from your templates.
+
+
+## ORM (Object-Relational Mapping)
+
+PoridhiWeb includes a lightweight ORM for database interactions. Currently supports SQLite with a factory pattern for future database dialect support.
+
+### Database Connection
+
+Use `DatabaseFactory` to create a database connection:
+
+```python
+from poridhiweb.orm.db_factory import DatabaseFactory, Dialect
+
+db = DatabaseFactory(dialect=Dialect.SQLITE).get_connection("mydb.sqlite")
+```
+
+### Defining Models
+
+Define your models by extending the `Table` class and using column types:
+
+```python
+from poridhiweb.orm.table import Table
+from poridhiweb.orm.column import Column, PrimaryKey, ForeignKey
+
+class Author(Table):
+    id = PrimaryKey(int, auto_increment=True)
+    name = Column(str)
+    age = Column(int)
+
+class Book(Table):
+    id = PrimaryKey(int, auto_increment=True)
+    title = Column(str)
+    author = ForeignKey(Author)  # Foreign key relationship
+```
+
+### Supported Column Types
+
+| Python Type | SQLite Type |
+|-------------|-------------|
+| `int`       | INTEGER     |
+| `str`       | TEXT        |
+| `float`     | REAL        |
+| `bool`      | INTEGER     |
+| `bytes`     | BLOB        |
+
+### CRUD Operations
+
+**Create Tables**
+```python
+db.create(Author)
+db.create(Book)
+```
+
+**Insert Records**
+```python
+author = Author(name="John Doe", age=30)
+db.save(author)
+print(author.id)  # Auto-generated ID is set after save
+```
+
+**Query Records**
+```python
+# Get all records
+authors = db.get_all(Author)
+
+# Get by ID
+author = db.get_by_id(Author, id=1)
+```
+
+**Update Records**
+```python
+author = db.get_by_id(Author, id=1)
+author.name = "Jane Doe"
+db.update(author)
+```
+
+**Delete Records**
+```python
+db.delete(Author, id=1)
+```
+
+### Foreign Key Relationships
+
+Foreign keys are automatically resolved when querying:
+
+```python
+# Create and save an author
+author = Author(name="Jane Doe", age=28)
+db.save(author)
+
+# Create a book with author reference
+book = Book(title="My First Book", author=author)
+db.save(book)
+
+# When fetching, foreign key is automatically loaded
+fetched_book = db.get_by_id(Book, id=1)
+print(fetched_book.author.name)  # "Jane Doe"
+```
+
+### Exception Handling
+
+The ORM provides a `RecordNotFound` exception for missing records:
+
+```python
+from poridhiweb.orm.exceptions import RecordNotFound
+
+try:
+    author = db.get_by_id(Author, id=999)
+except RecordNotFound as e:
+    print(f"Error: {e}")
+```
 
 **WSGI Compatibility**
 - The `PoridhiFrame` instance is a valid WSGI application. You can run it with any WSGI server (uWSGI, Gunicorn, or `wsgiref` during development).
