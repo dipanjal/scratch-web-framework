@@ -3,8 +3,9 @@ import sqlite3
 
 import pytest
 
+from poridhiweb.orm.database import Database
 from poridhiweb.orm.exceptions import RecordNotFound
-from poridhiweb.orm.sqlite_orm import Database
+from poridhiweb.orm.query_builder import QueryBuilder
 from tests.test_orm.conftest import Author, Book
 from poridhiweb.utils.json_util import JSONUtils
 
@@ -34,17 +35,28 @@ class TestSqliteORMCreation:
         assert "book" in db_tables
 
     def test_table_creation_sql(self):
-        assert Author._get_create_sql() == "CREATE TABLE IF NOT EXISTS author (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INTEGER);"
-        assert Book._get_create_sql() == "CREATE TABLE IF NOT EXISTS book (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, published INTEGER, author_id INTEGER);"
+        assert QueryBuilder.build_create_table_sql(Author) == "CREATE TABLE IF NOT EXISTS author (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INTEGER);"
+        assert QueryBuilder.build_create_table_sql(Book) == "CREATE TABLE IF NOT EXISTS book (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, published INTEGER, author_id INTEGER);"
 
-    def test_row_insertion_query(self):
+
+class TestSqliteORMInsert:
+    def setup_class(self):
+        self.db = Database("./test.db")
+        self.db.create(Author)
+        self.db.create(Book)
+
+    def teardown_class(self):
+        os.remove("./test.db")
+
+    def test_row_insertion_sql(self):
         author = Author(name="Author 1", age="25")
         book = Book(title="Test Book", published=1, author=author)
 
-        aq, av = author._get_insert_sql()
-        bq, bv = book._get_insert_sql()
-        assert aq == 'INSERT INTO author (id, name, age) VALUES (?, ?, ?);'
-        assert bq == 'INSERT INTO book (id, title, published, author_id) VALUES (?, ?, ?, ?);'
+        insert_author_sql, a_params = QueryBuilder.build_insert_sql(author)
+        insert_book_sql, b_params = QueryBuilder.build_insert_sql(book)
+
+        assert insert_author_sql == 'INSERT INTO author (id, name, age) VALUES (?, ?, ?);'
+        assert insert_book_sql == 'INSERT INTO book (id, title, published, author_id) VALUES (?, ?, ?, ?);'
 
     def test_row_insertion(self):
         author = Author(name="Garry C.", age=45)
@@ -57,6 +69,7 @@ class TestSqliteORMCreation:
         self.db.save(book)
         assert book.id is not None
         assert book.author == author
+        assert book.title == "The house of dragon"
 
 
 class TestSqliteORMRead:
@@ -69,11 +82,12 @@ class TestSqliteORMRead:
         os.remove("./test.db")
 
     def test_get_all_sql(self):
-        sql, fields = Author._get_select_all_sql()
+        # sql, fields = Author._get_select_all_sql()
+        sql, fields = QueryBuilder.build_select_all_sql(Author)
         assert sql == "SELECT id, name, age FROM author;"
         assert fields == ["id", "name", "age"]
 
-        sql, fields = Book._get_select_all_sql()
+        sql, fields = QueryBuilder.build_select_all_sql(Book)
         assert sql == "SELECT id, title, published, author_id FROM book;"
         assert fields == ["id", "title", "published", "author_id"]
 
@@ -138,13 +152,13 @@ class TestSqliteORMUpdate:
         autor_to_update: Author = self.db.get_by_id(Author, author.id)
         autor_to_update.name = "Garry C. Mertin"
         autor_to_update.age = 50
-        update_sql, column_names, params = autor_to_update._get_update_sql()
+        update_sql, column_names, params = QueryBuilder.build_update_sql(autor_to_update)
         assert update_sql == "UPDATE author SET name = ?, age = ? WHERE id = ?;"
         assert column_names == ["name = ?", "age = ?"]
         assert params == ["Garry C. Mertin", 50, autor_to_update.id]
 
         book_to_update: Book = self.db.get_by_id(Book, book.id)
-        update_sql, column_names, params = book_to_update._get_update_sql()
+        update_sql, column_names, params = QueryBuilder.build_update_sql(book_to_update)
         assert update_sql == "UPDATE book SET title = ?, published = ?, author_id = ? WHERE id = ?;"
         assert column_names == ["title = ?", "published = ?", "author_id = ?"]
 
@@ -181,6 +195,7 @@ class TestSqliteORMUpdate:
         assert JSONUtils.to_dict(updated_book_fetched.author) == JSONUtils.to_dict(author_2)
         assert JSONUtils.to_dict(updated_book_fetched) == JSONUtils.to_dict(book_to_update)
 
+
 class TestSqliteORMDelete:
     def setup_method(self):
         self.db = Database("./test.db")
@@ -194,7 +209,7 @@ class TestSqliteORMDelete:
         author = Author(name="Garry C.", age=45)
         self.db.save(author)
 
-        sql, params = Author._get_delete_sql(author.id)
+        sql, params = QueryBuilder.build_delete_sql(Author, author.id)
         assert sql == "DELETE FROM author WHERE id = ?;"
         assert params == [author.id]
 
