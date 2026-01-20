@@ -3,16 +3,20 @@ import sqlite3
 
 import pytest
 
-from poridhiweb.orm.sqlite.database import Database
-from poridhiweb.orm.sqlite.exceptions import RecordNotFound
+from poridhiweb.orm.database import Database
+from poridhiweb.orm.exceptions import RecordNotFound
 from poridhiweb.orm.sqlite.query_builder import QueryBuilder
+from poridhiweb.orm.sqlite.sqlite_types import SQL_TYPE_MAP
 from tests.test_orm.conftest import Author, Book
 from poridhiweb.utils.json_util import JSONUtils
+from poridhiweb.orm.db_factory import DatabaseFactory, Dialect
+
+db_factory = DatabaseFactory(dialect=Dialect.SQLITE)
 
 
 class TestSqliteORMCreation:
     def setup_class(self):
-        self.db = Database("./test.db")
+        self.db: Database = db_factory.get_connection(path="./test.db")
 
     def teardown_class(self):
         os.remove("./test.db")
@@ -22,10 +26,10 @@ class TestSqliteORMCreation:
 
     def test_define_tables(self):
         assert Author.name.type == str
-        assert Author.name.sql_type.value == "TEXT"
+        assert SQL_TYPE_MAP[Author.name.type].value == "TEXT"
 
-        assert Book.author.table == Author
-        assert Author.age.sql_type.value == "INTEGER"
+        assert Author.age.type == int
+        assert SQL_TYPE_MAP[Author.age.type].value == "INTEGER"
 
     def test_create_table(self):
         self.db.create(Author)
@@ -41,7 +45,7 @@ class TestSqliteORMCreation:
 
 class TestSqliteORMInsert:
     def setup_class(self):
-        self.db = Database("./test.db")
+        self.db: Database = db_factory.get_connection(path="./test.db")
         self.db.create(Author)
         self.db.create(Book)
 
@@ -74,7 +78,7 @@ class TestSqliteORMInsert:
 
 class TestSqliteORMRead:
     def setup_class(self):
-        self.db = Database("./test.db")
+        self.db: Database = db_factory.get_connection(path="./test.db")
         self.db.create(Author)
         self.db.create(Book)
 
@@ -135,7 +139,7 @@ class TestSqliteORMRead:
 
 class TestSqliteORMUpdate:
     def setup_method(self):
-        self.db = Database("./test.db")
+        self.db: Database = db_factory.get_connection(path="./test.db")
         self.db.create(Author)
         self.db.create(Book)
 
@@ -198,7 +202,7 @@ class TestSqliteORMUpdate:
 
 class TestSqliteORMDelete:
     def setup_method(self):
-        self.db = Database("./test.db")
+        self.db: Database = db_factory.get_connection(path="./test.db")
         self.db.create(Author)
         self.db.create(Book)
 

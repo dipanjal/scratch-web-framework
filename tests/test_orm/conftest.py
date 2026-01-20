@@ -1,5 +1,5 @@
-from poridhiweb.orm.sqlite.column import PrimaryKey, Column, ForeignKey
-from poridhiweb.orm.sqlite.table import Table
+from poridhiweb.orm.column import PrimaryKey, Column, ForeignKey
+from poridhiweb.orm.table import Table
 
 
 class Author(Table):

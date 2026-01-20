@@ -1,6 +1,6 @@
-from poridhiweb.orm.sqlite.column import PrimaryKey, ForeignKey, Column
-from poridhiweb.orm.sqlite.table import Table
-# from poridhiweb.orm.sqlite_orm import Table
+from poridhiweb.orm.column import PrimaryKey, ForeignKey, Column
+from poridhiweb.orm.sqlite.sqlite_types import SQL_TYPE_MAP
+from poridhiweb.orm.table import Table
 
 
 class QueryBuilder:
@@ -9,16 +9,17 @@ class QueryBuilder:
         CREATE_TABLE_SQL = "CREATE TABLE IF NOT EXISTS {name} ({fields});"
         fields = []
         table_name = table_type.__name__.lower()
-        for name, field in table_type._columns.items():
-            if isinstance(field, PrimaryKey):
-                sql = f"{name} {field.sql_type.value} PRIMARY KEY"
-                if field.auto_increment:
+        for name, column in table_type._columns.items():
+            sql_type = SQL_TYPE_MAP[column.type]
+            if isinstance(column, PrimaryKey):
+                sql = f"{name} {sql_type.value} PRIMARY KEY"
+                if column.auto_increment:
                     sql += " AUTOINCREMENT"
                 fields.append(sql)
-            elif isinstance(field, ForeignKey):
-                fields.append(f"{name}_id INTEGER")
-            elif isinstance(field, Column):
-                fields.append(f"{name} {field.sql_type.value}")
+            elif isinstance(column, ForeignKey):
+                fields.append(f"{name}_id {sql_type.value}")
+            elif isinstance(column, Column):
+                fields.append(f"{name} {sql_type.value}")
 
         fields = ", ".join(fields)
         return CREATE_TABLE_SQL.format(name=table_name, fields=fields)

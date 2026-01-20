@@ -1,16 +1,20 @@
 import sqlite3
 from typing import TypeVar
 
-from poridhiweb.orm.sqlite.column import Column, ForeignKey
-from poridhiweb.orm.sqlite.exceptions import RecordNotFound
+from poridhiweb.orm.database import Database
+from poridhiweb.orm.sql_type import SQLType
+from poridhiweb.orm.column import Column, ForeignKey
+from poridhiweb.orm.exceptions import RecordNotFound
 from poridhiweb.orm.sqlite.query_builder import QueryBuilder
-from poridhiweb.orm.sqlite.sql_types import SQLType
-from poridhiweb.orm.sqlite.table import Table
+
+
+from poridhiweb.orm.sqlite.sqlite_types import SQL_TYPE_MAP
+from poridhiweb.orm.table import Table
 
 T = TypeVar("T", bound=Table)
 
 
-class Database:
+class SqliteDatabase(Database):
     def __init__(self, path):
         self.path = path
         self.connection = sqlite3.Connection(self.path)
@@ -94,7 +98,7 @@ class Database:
                 )
                 kwargs[field_name] = fk_instance
             else:
-                sql_type: SQLType = column.sql_type
+                sql_type: SQLType = SQL_TYPE_MAP[column.type]
                 kwargs[field_name] = sql_type.to_python_type(col_value)
         instance = table_type(**kwargs)
         return instance
