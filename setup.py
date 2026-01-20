@@ -12,7 +12,7 @@ DESCRIPTION = "PoridhiFrame Python Web Framework built for learning purposes."
 EMAIL = "dipanjalmaitra@gmail.com"  # Your email
 AUTHOR = "Dipanjal Maitra"  # Your name
 REQUIRES_PYTHON = ">=3.6.0"
-VERSION = "0.0.4"
+VERSION = "0.0.5"
 
 # Framework dependencies
 REQUIRED = [
