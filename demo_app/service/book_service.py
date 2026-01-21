@@ -7,10 +7,11 @@ from poridhiweb.orm.exceptions import RecordNotFound
 class BookService:
     def __init__(self):
         self.repository = BookRepository()
-        self.seed_data(seed=False)
+        self.seed_data()
 
-    def seed_data(self, seed=True):
-        if seed:
+    def seed_data(self):
+        books: list[Book] = self.repository.all()
+        if not books:
             self.repository.insert(
                 Book(name="The Great Gatsby", author="F. Scott Fitzgerald")
             )
